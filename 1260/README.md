@@ -1,5 +1,7 @@
 # 1260: DFS와 BFS
 
+https://www.acmicpc.net/problem/1260
+
 - DFS는 스택으로, BFS는 큐를 이용하여 풀 수 있다.
 
 ![1260](1260.png)
