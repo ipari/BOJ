@@ -3,64 +3,42 @@ import sys
 
 N, M, V = map(int, sys.stdin.readline().split())
 
-vs1 = [v for v in range(1, N + 1)]
-es1 = []
+# 인접 리스트를 먼저 만든다.
+adj_list = [[] for _ in range(N + 1)]
 for m in range(M):
     v1, v2 = map(int, sys.stdin.readline().split())
-    es1.append(sorted([v1, v2]))
+    adj_list[v1].append(v2)
+    adj_list[v2].append(v1)
+# 정점 번호가 작은 것을 먼저 추가하기 용이하게 인접 리스트를 미리 정렬한다.
+adj_list = [sorted(vs) for vs in adj_list]
 
-# BFS 에서 사용
-vs2 = vs1.copy()
-es2 = es1.copy()
 
+def search_graph(adj_list, start_v, mode='DFS'):
+    search_order = []
+    search_buffer = [start_v]
+    # 방문한 정점인지 여부를 정점의 값으로 바로 확인할 수 있도록
+    visited_vs = [False for i in range(N + 1)]
 
-def get_connected_vs(v1, vs, es):
-    # 간선의 목록에서 v와 연결된 v들을 찾는다.
-    connected_vs = []
-    for e in es:
-        if v1 not in e:
+    while search_buffer:
+        # DFS, BFS 여부에 따라 버퍼를 각각 스택과 큐로 사용
+        i = -1 if mode == 'DFS' else 0
+        v1 = search_buffer.pop(i)
+
+        # 이미 방문한 정점이면 지나감
+        if visited_vs[v1]:
             continue
-        i = 1 if e.index(v1) == 0 else 0
-        v2 = e[i]
-        if v2 not in vs:
-            connected_vs.append(e[i])
-    return sorted(connected_vs)
+
+        visited_vs[v1] = True
+        search_order.append(v1)
+
+        # 인접 리스트의 값을 미리 정렬해두었다.
+        # DFS는 스택이므로 작은 값이 뒤로 가게 역순으로 버퍼에 추가하고,
+        # BFS는 큐이므로 작은 값이 앞으로 가게 버퍼에 추가한다.
+        s = -1 if mode == 'DFS' else 1
+        search_buffer += [v2 for v2 in adj_list[v1][::s] if not visited_vs[v2]]
+
+    print(' '.join(map(str, search_order)))
 
 
-# DFS
-dfs = []
-dfs_stack = [V]
-
-while dfs_stack:
-    v1 = dfs_stack[-1]
-    if v1 not in dfs:
-        dfs.append(v1)
-
-    connected_vs = get_connected_vs(v1, dfs, es1)
-    if not connected_vs:
-        dfs_stack.pop()
-        continue
-
-    v2 = connected_vs[0]
-    es1.remove(sorted([v1, v2]))
-    dfs_stack.append(v2)
-
-print(' '.join(map(str, dfs)))
-
-
-# BFS
-bfs = []
-bfs_queue = [V]
-
-while bfs_queue:
-    v1 = bfs_queue.pop(0)
-    bfs.append(v1)
-    connected_vs = get_connected_vs(v1, bfs, es2)
-    if not connected_vs:
-        continue
-    for v2 in connected_vs:
-        es2.remove(sorted([v1, v2]))
-        if v2 not in bfs_queue:
-            bfs_queue.append(v2)
-
-print(' '.join(map(str, bfs)))
+search_graph(adj_list, V, mode='DFS')
+search_graph(adj_list, V, mode='BFS')
